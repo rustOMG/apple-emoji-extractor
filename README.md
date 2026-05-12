@@ -1,49 +1,73 @@
-# Emoji Extractor Plus ➕
+# Apple Emoji Extractor
 
-Everyone 💕s Emojis. Problem is, it's hard to use them in Photoshop or in Google Slides and Docs. For this reason I created an emoji extractor that takes the PNG data from the Apple font and saves it as an image.
+Export Apple Color Emoji PNGs from macOS with Docker.
 
+This project is for the simple case: you have Docker on a Mac, you need Apple's emoji images as PNG files, and you do not want to install Python or leave temporary font/XML files in your project.
 
-# Usage ⚒
+## Disclaimer
 
-* Clone this repo
-* If you're using [virtualenv](https://virtualenv.pypa.io/en/stable/), make a new env
-* Run `python3 -m pip install -r requirements.pip`
-* Run `python3 extract.py`
+This project is for educational purposes only.
 
-This will extract the PNGs from the font file at `/System/Library/Fonts/Apple Color Emoji.ttc`. If you want to target another font file, just use the `--ttc_file` flag with the path to the file.
+No Apple Color Emoji assets are included in this repository. The extractor works with the Apple Color Emoji font already present on your own macOS system.
 
-The script will save the PNG data from the font into the `./images` directory wherever you ran the script. The following resolutions are curretly extracted:
+All Apple Color Emoji assets and designs belong to Apple Inc. Apple is a registered trademark of Apple Inc. in the U.S. and other countries.
 
-* 160x160
-* 96x96
-* 64x64
-* 52x52
-* 48x48
-* 40x40
-* 32x32
-* 26x26
-* 20x20
+Using extracted emoji images or a font from a different operating system may have licensing implications; that responsibility is on you.
 
-All the emojis will be labeled with their proper names, too! 
+## Requirements
 
-![](https://s3.amazonaws.com/sashimiblade.com/emoji-files.png "")
+- macOS with `Apple Color Emoji.ttc`
+- Docker Desktop for Mac
 
+## Usage
 
+Run one command from the project directory:
 
-# Fun Info
+```bash
+IMAGE_ID="$(docker build -q .)" && tar -cf - -C "/System/Library/Fonts" "Apple Color Emoji.ttc" -C "/System/Library/PrivateFrameworks/CoreEmoji.framework/Versions/A/Resources/en.lproj" "AppleName.strings" | docker run --rm -i -v "$PWD:/out" "$IMAGE_ID"; test -n "$IMAGE_ID" && docker rmi "$IMAGE_ID" >/dev/null
+```
 
-## Unicode is awesome 💥
+The command builds a temporary Docker image, streams the two macOS emoji metadata files into the container, exports the images, removes the container automatically, and removes the built image at the end.
 
-Making this script was a fun exercise in learning more about Unicode and how it's being used to scale the number and types of emojis that Apple is making these days. With the addition of skin tones and gender modifiers, emoji are no longer one Unicode character anymore. 
+## Output
 
-To give an example of one of the more complicated emojis that Apple has created, take 👨‍👩‍👧‍👧, which comes from the Unicode string `\U0001f468\u200d\U0001f469\u200d\U0001f467\u200d\U0001f467`. (Shown as represented in Python)
+The only project files created by a normal run are:
 
-This string is broken into several characters:
+```text
+images/
+emoji_index.json
+```
 
-`\U0001f468`: 👱‍♂️
-`\U0001f469`: 👩
-`\U0001f467`: 👧
+Images are saved by size:
 
-Each character has a `\u200d` character between it, which is a [zero width joiner](https://emojipedia.org/zero-width-joiner/) in between it. This character is used to join two or more Unicode characters together, in this case the people in the emoji. the ZWG is used also for any modifier, such as skin tone and gender.
+```text
+images/20x20/angry_face.png
+images/40x40/angry_face.png
+images/160x160/angry_face.png
+```
 
-My experience before this exercise was mostly with characters that were in the [ASCII table](https://www.asciitable.com/) from the olden days, so exploring this topic with emojis was interesting. Unicode was created to scale to many more characters than could be represented in the ASCII table, which allows it to support not only emojis, but all writing systems.
+Filenames are normalized to `snake_case`.
+
+The extractor also writes `emoji_index.json`, which containing a map of text emojis to image files:
+
+```json
+{
+  "angry_face": {
+    "filename": "angry_face.png",
+    "emoji": "😠",
+    "name": "angry face",
+    "codepoints": ["U+1F620"],
+    "unicode_sequence": "1F620",
+    "glyph_name": "u1F620",
+    "files": {
+      "20x20": "images/20x20/angry_face.png",
+      "40x40": "images/40x40/angry_face.png",
+      "160x160": "images/160x160/angry_face.png"
+    }
+  }
+}
+```
+
+## License
+
+GPL-3.0, following the upstream `emoji-extractor-plus` project.
