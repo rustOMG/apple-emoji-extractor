@@ -1,2 +1,23 @@
-*.txt
-images
+# Generated output
+images/
+emoji_index.json
+
+# Large temporary files
+*.ttc
+*.ttf
+Apple Color Emoji.ttc.xml
+macos-files/
+
+# Python noise
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# IDE/editor files
+.idea/
+.vscode/
+
+# macOS
+.DS_Store
